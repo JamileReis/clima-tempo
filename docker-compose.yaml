@@ -1,0 +1,65 @@
+version: "3.9"
+
+services:
+
+  mongodb:
+    image: mongo:6.0
+    container_name: mongodb
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USER:-root}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:-root}
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+      - mongodb_config:/data/configdb
+
+
+  collector:
+    build: ./collector
+    container_name: collector
+    restart: unless-stopped
+    environment:
+      OPENWEATHER_API_KEY: "b65b05338e677f914f9bfdbd9e15ca94"
+      CITY: "Araci,BR"
+      OPENWEATHER_API_URL: "https://api.openweathermap.org/data/2.5"
+      OUTPUT_FILE: "weather_data.json"
+    volumes:
+      - ./collector/weather_data.json:/app/weather_data.json
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    restart: always
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+
+  api:
+    build: ./api
+    container_name: nest-api
+    ports:
+      - "3000:3000"
+    depends_on:
+      - mongodb
+      - rabbitmq
+    restart: unless-stopped
+
+  worker:
+    build: ./worker
+    container_name: worker-go
+    depends_on:
+      - rabbitmq
+      - api
+    environment:
+      RABBIT_URL: amqp://guest:guest@rabbitmq:5672/
+      API_URL: http://api:3000/api/weather/logs
+    restart: always
+
+volumes:
+  mongodb_data:
+  mongodb_config:
