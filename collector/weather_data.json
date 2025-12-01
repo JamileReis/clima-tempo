@@ -1,0 +1,13 @@
+{
+    "cidade": "Araci,BR",
+    "timestamp_utc": "2025-11-29T01:25:56.623716Z",
+    "temperatura_c": 22.56,
+    "sensacao_termica_c": 23.06,
+    "umidade_pct": 84,
+    "vento_m_s": 4.78,
+    "condicao": "nublado",
+    "pressao_hpa": 1014,
+    "nuvens_pct": 73,
+    "prob_chuva_mm_1h": 0,
+    "prob_chuva_mm_3h": 0
+}
