@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
 
   mongodb:
@@ -7,26 +5,19 @@ services:
     container_name: mongodb
     restart: unless-stopped
     environment:
-      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USER:-root}
-      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:-root}
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
+      MONGO_INITDB_DATABASE: ${MONGO_DB}
     ports:
       - "27017:27017"
     volumes:
       - mongodb_data:/data/db
       - mongodb_config:/data/configdb
-
-
-  collector:
-    build: ./collector
-    container_name: collector
-    restart: unless-stopped
-    environment:
-      OPENWEATHER_API_KEY: "b65b05338e677f914f9bfdbd9e15ca94"
-      CITY: "Araci,BR"
-      OPENWEATHER_API_URL: "https://api.openweathermap.org/data/2.5"
-      OUTPUT_FILE: "weather_data.json"
-    volumes:
-      - ./collector/weather_data.json:/app/weather_data.json
+    healthcheck:
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 60s
 
   rabbitmq:
     image: rabbitmq:3-management
@@ -36,8 +27,25 @@ services:
       - "5672:5672"
       - "15672:15672"
     environment:
-      RABBITMQ_DEFAULT_USER: guest
-      RABBITMQ_DEFAULT_PASS: guest
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_port_connectivity"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  collector:
+    build: ./collector
+    container_name: collector
+    restart: unless-stopped
+    environment:
+      OPENWEATHER_API_KEY: ${OPENWEATHER_API_KEY}
+      CITY: ${CITY}
+      OPENWEATHER_API_URL: ${OPENWEATHER_API_URL}
+      OUTPUT_FILE: ${OUTPUT_FILE}
+    volumes:
+      - ./collector/weather_data.json:/app/weather_data.json
 
   api:
     build: ./api
@@ -45,19 +53,32 @@ services:
     ports:
       - "3000:3000"
     depends_on:
-      - mongodb
-      - rabbitmq
+      mongodb:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
     restart: unless-stopped
+    environment:
+      MONGO_USER: ${MONGO_USER}
+      MONGO_PASSWORD: ${MONGO_PASSWORD}
+      MONGO_HOST: ${MONGO_HOST}
+      MONGO_PORT: ${MONGO_PORT}
+      MONGO_DB: ${MONGO_DB}
 
   worker:
     build: ./worker
     container_name: worker-go
     depends_on:
-      - rabbitmq
-      - api
+      mongodb:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      collector:
+        condition: service_started
     environment:
-      RABBIT_URL: amqp://guest:guest@rabbitmq:5672/
-      API_URL: http://api:3000/api/weather/logs
+      RABBIT_URL: ${RABBIT_URL}
+      API_URL: ${API_URL}
+      COLLECTOR_SERVICE_URL: http://collector:8080
     restart: always
 
 volumes:

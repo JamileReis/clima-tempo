@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/monitor-clima/worker/src/application"
 	"github.com/monitor-clima/worker/src/infrastructure/adapters"
@@ -14,9 +15,16 @@ import (
 func main() {
 	log.Println("[INFRA] Worker iniciado.")
 
-	weatherAPIAdapter := adapters.NewWeatherAPIAdapter()
+	if os.Getenv("COLLECTOR_SERVICE_URL") == "" {
+		log.Fatalf("[FATAL] A variavel COLLECTOR_SERVICE_URL nao foi definida. Verifique seu .env.")
+	}
 
-	monitorService := application.NewMonitorService(weatherAPIAdapter)
+	collectorAdapter := adapters.NewHTTPCollectorAdapter()
+
+	monitorService := application.NewMonitorService(collectorAdapter)
+
+	log.Println("[INFRA] Aguardando 5s antes de conectar ao RabbitMQ...")
+	time.Sleep(5 * time.Second)
 
 	consumer := rabbitmq.NewConsumer(monitorService)
 	consumer.Connect()
@@ -24,9 +32,11 @@ func main() {
 
 	go consumer.Consume()
 
+	log.Println("[INFRA] Worker pronto. Aguardando mensagens...")
+
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
 
-	log.Println("[INFRA] Sinal de desligamento recebido. Encerrando o Worker...")
+	log.Println("[INFRA] Desligamento iniciado.")
 }
