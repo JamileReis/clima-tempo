@@ -1,19 +1,19 @@
-services:
+version: "3.9"
 
+services:
   mongodb:
     image: mongo:6.0
     container_name: mongodb
     restart: unless-stopped
     environment:
-      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER}
-      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
-      MONGO_INITDB_DATABASE: ${MONGO_DB}
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USER:-root}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:-root}
     ports:
       - "27017:27017"
     volumes:
       - mongodb_data:/data/db
-      - mongodb_config:/data/configdb
     healthcheck:
+      test: ["CMD", "mongo", "--eval", "db.adminCommand('ping')"]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -22,65 +22,32 @@ services:
   rabbitmq:
     image: rabbitmq:3-management
     container_name: rabbitmq
-    restart: always
     ports:
       - "5672:5672"
       - "15672:15672"
-    environment:
-      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER}
-      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}
-    healthcheck:
-      test: ["CMD", "rabbitmq-diagnostics", "check_port_connectivity"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  collector:
-    build: ./collector
-    container_name: collector
-    restart: unless-stopped
-    environment:
-      OPENWEATHER_API_KEY: ${OPENWEATHER_API_KEY}
-      CITY: ${CITY}
-      OPENWEATHER_API_URL: ${OPENWEATHER_API_URL}
-      OUTPUT_FILE: ${OUTPUT_FILE}
-    volumes:
-      - ./collector/weather_data.json:/app/weather_data.json
 
   api:
     build: ./api
-    container_name: nest-api
+    container_name: monitor-clima-api
     ports:
       - "3000:3000"
     depends_on:
-      mongodb:
-        condition: service_healthy
-      rabbitmq:
-        condition: service_healthy
-    restart: unless-stopped
-    environment:
-      MONGO_USER: ${MONGO_USER}
-      MONGO_PASSWORD: ${MONGO_PASSWORD}
-      MONGO_HOST: ${MONGO_HOST}
-      MONGO_PORT: ${MONGO_PORT}
-      MONGO_DB: ${MONGO_DB}
+      - mongodb
+      - rabbitmq
+
+  collector:
+    build: ./collector
+    container_name: monitor-clima-collector
+    depends_on:
+      - mongodb
+      - rabbitmq
 
   worker:
     build: ./worker
-    container_name: worker-go
+    container_name: monitor-clima-worker
     depends_on:
-      mongodb:
-        condition: service_healthy
-      rabbitmq:
-        condition: service_healthy
-      collector:
-        condition: service_started
-    environment:
-      RABBIT_URL: ${RABBIT_URL}
-      API_URL: ${API_URL}
-      COLLECTOR_SERVICE_URL: http://collector:8080
-    restart: always
+      - mongodb
+      - rabbitmq
 
 volumes:
   mongodb_data:
-  mongodb_config:
