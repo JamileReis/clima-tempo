@@ -1,24 +1,37 @@
-import { IsString, IsNumber } from 'class-validator';
+import { IsString, IsNumber, IsOptional } from 'class-validator';
+import { Type } from 'class-transformer';
 
 export class InsightsRequestDto {
+    @IsOptional()
     @IsString()
-    location: string;
+    location: string = '';
 
+    @IsOptional()
     @IsNumber()
-    count: number;
+    @Type(() => Number)
+    count: number = 0;
 
+    @IsOptional()
     @IsNumber()
-    avgTemperature: number;
+    @Type(() => Number)
+    avgTemperature: number = 0;
 
+    @IsOptional()
     @IsNumber()
-    minTemperature: number;
+    @Type(() => Number)
+    minTemperature: number = 0;
 
+    @IsOptional()
     @IsNumber()
-    maxTemperature: number;
+    @Type(() => Number)
+    maxTemperature: number = 0;
 
+    @IsOptional()
     @IsNumber()
-    avgHumidity: number;
+    @Type(() => Number)
+    avgHumidity: number = 0;
 
+    @IsOptional()
     @IsString()
-    trend: string;
+    trend: string = '';
 }

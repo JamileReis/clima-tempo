@@ -2,11 +2,11 @@ import { IsEmail, IsNotEmpty, IsOptional, IsString, MinLength } from 'class-vali
 
 export class CreateUserDto {
     @IsEmail()
-    email: string
+    email!: string
 
     @IsString()
     @MinLength(6)
-    password: string
+    password!: string
 
     @IsOptional()
     @IsString({ each: true })

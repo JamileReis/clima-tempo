@@ -1,44 +1,40 @@
-import { Module, OnModuleInit } from '@nestjs/common'
-import { MongooseModule } from '@nestjs/mongoose'
-import { ConfigService } from '@nestjs/config'
-import { UsersService } from './users.service'
-import { UsersController } from './users.controller'
-import { User, UserSchema } from './schemas/user.schema'
-import { UsersRepository } from './users.repository'
+import { Module, OnModuleInit } from '@nestjs/common';
+import { MongooseModule } from '@nestjs/mongoose';
+import { ConfigService } from '@nestjs/config'; // <- Import correto
+import { UsersService } from './users.service';
+import { UsersController } from './users.controller';
+import { User, UserSchema } from './schemas/user.schema';
+import { UsersRepository } from './users.repository';
 
 @Module({
-    imports: [
-        MongooseModule.forFeature([
-            {
-                name: User.name,
-                schema: UserSchema,
-            },
-        ]),
-    ],
-    controllers: [UsersController],
-    providers: [UsersService, UsersRepository],
-    exports: [UsersService, UsersRepository],
+  imports: [
+    MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
+  ],
+  controllers: [UsersController],
+  providers: [UsersService, UsersRepository],
+  exports: [UsersService, UsersRepository],
 })
 export class UsersModule implements OnModuleInit {
-    constructor(
-        private readonly usersService: UsersService,
-        private readonly configService: ConfigService,
-    ) {}
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly configService: ConfigService, // Funciona agora
+  ) {}
 
-    async onModuleInit() {
-        const adminEmail = this.configService.get<string>('ADMIN_EMAIL', 'admin@example.com')
-        const adminPassword = this.configService.get<string>('ADMIN_PASSWORD', '123456')
+  async onModuleInit() {
+    const adminEmail = this.configService.get<string>('ADMIN_EMAIL', 'admin@example.com');
+    const adminPassword = this.configService.get<string>('ADMIN_PASSWORD', '123456');
 
-        try {
-            const existing = await this.usersService['usersRepository'].findByEmail(adminEmail)
-            if (!existing) {
-                await this.usersService.create({
-                    email: adminEmail,
-                    password: adminPassword,
-                    roles: ['admin'],
-                })
-            }
-        } catch (e) {
-        }
+    try {
+      const existing = await this.usersService['usersRepository'].findByEmail(adminEmail);
+      if (!existing) {
+        await this.usersService.create({
+          email: adminEmail,
+          password: adminPassword,
+          roles: ['admin'],
+        });
+      }
+    } catch (e) {
+      console.error('Error initializing admin user:', e);
     }
+  }
 }

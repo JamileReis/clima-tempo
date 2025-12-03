@@ -2,13 +2,13 @@ import { IsString, IsNumber, IsOptional } from 'class-validator';
 
 export class CreateWeatherLogDto {
     @IsString()
-    location: string;
+    location!: string;
 
     @IsNumber()
-    temperature: number;
+    temperature!: number;
 
     @IsNumber()
-    humidity: number;
+    humidity!: number;
 
     @IsOptional()
     @IsNumber()
