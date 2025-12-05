@@ -22,7 +22,7 @@ services:
       - "15672:15672"
     restart: unless-stopped
     networks:
-      - app-net 
+      - app-net
 
   api:
     build: ./api
@@ -71,7 +71,7 @@ services:
     ports:
       - "5173:80"
     environment:
-      VITE_API_URL: "http://api:3000"
+      VITE_API_URL: "http://localhost:3000"
     networks:
       - app-net 
 
