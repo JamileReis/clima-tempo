@@ -1,3 +1,4 @@
+version: "3.9"
 services:
   mongodb:
     image: mongo:6.0
@@ -10,7 +11,9 @@ services:
       - "27017:27017"
     volumes:
       - mongodb_data:/data/db
-
+    networks:
+      - app-net 
+  
   rabbitmq:
     image: rabbitmq:3-management
     container_name: rabbitmq
@@ -18,6 +21,8 @@ services:
       - "5672:5672"
       - "15672:15672"
     restart: unless-stopped
+    networks:
+      - app-net 
 
   api:
     build: ./api
@@ -30,6 +35,8 @@ services:
     environment:
       MONGO_URL: "mongodb://root:root@mongodb:27017"
       RABBITMQ_URI: "amqp://guest:guest@rabbitmq:5672/"
+    networks:
+      - app-net 
 
   collector:
     build: ./collector
@@ -39,6 +46,8 @@ services:
       - rabbitmq
     environment:
       COLLECTOR_PORT: 8080
+    networks:
+      - app-net 
 
   worker:
     build: ./worker
@@ -50,6 +59,8 @@ services:
     environment:
       COLLECTOR_SERVICE_URL: "http://collector:8080"
       RABBITMQ_URI: "amqp://guest:guest@rabbitmq:5672/"
+    networks:
+      - app-net 
 
   frontend:
     build:
@@ -62,7 +73,7 @@ services:
     environment:
       VITE_API_URL: "http://api:3000"
     networks:
-      - app-net
+      - app-net 
 
 networks:
   app-net:

@@ -1,21 +1,16 @@
-export const API_BASE = "http://localhost:3000";
+import axios from 'axios'
 
-export async function fetchWeather() {
-  const res = await fetch(`${API_BASE}/weather`);
-  return res.json();
-}
+const BASE =
+  (import.meta as any).env?.VITE_API_BASE || 'http://localhost:3000'
 
-export async function fetchInsights() {
-  const res = await fetch(`${API_BASE}/weather/insights`);
-  return res.json();
-}
+export const api = axios.create({
+  baseURL: BASE,
+  timeout: 10000,
+  withCredentials: true,
+})
 
-export async function exportCsv() {
-  const res = await fetch(`${API_BASE}/weather/export/csv`);
-  return res.blob();
-}
-
-export async function exportXlsx() {
-  const res = await fetch(`${API_BASE}/weather/export/xlsx`);
-  return res.blob();
+export async function getCurrent(location?: string) {
+  const q = location ? `?location=${encodeURIComponent(location)}` : ''
+  const res = await api.get(`/api/weather/current${q}`)
+  return res.data
 }
