@@ -1,0 +1,29 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "useDefineForClassFields": true,
+    "module": "ESNext",
+    "lib": ["DOM", "DOM.Iterable", "ESNext"],
+    "skipLibCheck": true,
+
+    "allowJs": false,
+    "jsx": "react-jsx",
+    "noEmit": true,
+    "isolatedModules": true,
+    "esModuleInterop": true,
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+
+    "ignoreDeprecations": "6.0",
+    "paths": {
+      "@/*": ["./src/*"],
+      "@components/*": ["./src/components/*"],
+      "@hooks/*": ["./src/hooks/*"],
+      "@services/*": ["./src/services/*"],
+      "@lib/*": ["./src/lib/*"]
+    }
+  },
+
+  "include": ["src"],
+  "references": [{ "path": "./tsconfig.node.json" }]
+}

@@ -51,5 +51,22 @@ services:
       COLLECTOR_SERVICE_URL: "http://collector:8080"
       RABBITMQ_URI: "amqp://guest:guest@rabbitmq:5672/"
 
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: frontend
+    restart: unless-stopped
+    ports:
+      - "5173:80"
+    environment:
+      VITE_API_URL: "http://api:3000"
+    networks:
+      - app-net
+
+networks:
+  app-net:
+    driver: bridge
+
 volumes:
   mongodb_data:
