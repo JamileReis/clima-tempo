@@ -1,0 +1,56 @@
+version: "3.9"
+services:
+  mongodb:
+    image: mongo:6.0
+    container_name: mongodb
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USER:-root}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:-root}
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - app-net 
+  
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    restart: unless-stopped
+    networks:
+      - app-net
+
+  collector:
+    build: ./collector
+    container_name: monitor-clima-collector
+    depends_on:
+      - mongodb
+      - rabbitmq
+    environment:
+      COLLECTOR_PORT: 8080
+    networks:
+      - app-net 
+
+  worker:
+    build: ./worker
+    container_name: monitor-clima-worker
+    depends_on:
+      - mongodb
+      - rabbitmq
+      - collector
+    environment:
+      COLLECTOR_SERVICE_URL: "http://collector:8080"
+      RABBITMQ_URI: "amqp://guest:guest@rabbitmq:5672/"
+    networks:
+      - app-net 
+
+networks:
+  app-net:
+    driver: bridge
+
+volumes:
+  mongodb_data:
