@@ -7,49 +7,6 @@ A arquitetura foi projetada com três objetivos:
 ✔ Escalabilidade
 ✔ Resiliência
 ✔ Baixo acoplamento  
-          ┌─────────────────────────┐AA
-          │     OpenWeather API     │
-          └─────────────┬───────────┘
-                        │
-                        ▼
-            ┌──────────────────────┐
-            │ Python Collector     │
-            │ coleta clima real    │
-            └─────────────┬────────┘
-                          │ envia JSON
-                          ▼
-                ┌──────────────────┐
-                │  RabbitMQ (fila) │
-                └──────────┬───────┘
-                           │
-                           ▼
-              ┌─────────────────────┐
-              │ Go Worker           │
-              │ valida + envia p/   │
-              │ API NestJS          │
-              └──────────┬──────────┘
-                         │ POST
-                         ▼
-              ┌──────────────────────┐
-              │  API NestJS          │
-              │  - salva no MongoDB  │
-              │  - insights IA       │
-              │  - dados p/ Frontend │
-              └──────────┬───────────┘
-                         │
-                         ▼
-              ┌─────────────────────┐
-              │     MongoDB         │
-              │  histórico completo │
-              └──────────┬──────────┘
-                         │
-                         ▼
-              ┌───────────────────────┐
-              │ Frontend (Vite + React)│
-              │ gráficos + insights     │
-              └─────────────────────────┘
-              Este projeto implementa um pipeline completo e moderno de monitoramento climático, usando uma arquitetura distribuída baseada em microsserviços. Ele combina coleta automática de dados meteorológicos, processamento assíncrono, persistência histórica, geração de insights com IA e visualização em um dashboard interativo.
-
 🔄 Pipeline de Dados
 
 Python Collector busca dados reais da OpenWeather e envia para o RabbitMQ.
