@@ -1,16 +1,28 @@
-import axios from 'axios'
+import axios from "axios";
 
-const BASE =
-  (import.meta as any).env?.VITE_API_BASE || 'http://localhost:3000'
-
-export const api = axios.create({
-  baseURL: BASE,
-  timeout: 10000,
-  withCredentials: true,
+const api = axios.create({
+    baseURL: "http://localhost:3000/api"
 })
 
-export async function getCurrent(location?: string) {
-  const q = location ? `?location=${encodeURIComponent(location)}` : ''
-  const res = await api.get(`/api/weather/current${q}`)
-  return res.data
+const DEFAULT_LOCATION = "Araci,BR";
+
+export async function getCurrent(location = DEFAULT_LOCATION) {
+    const { data } = await api.get(`/weather/current`, {
+        params: { location }
+    });
+    return data;
+}
+
+export async function getLogs(location = DEFAULT_LOCATION) {
+    const { data } = await api.get(`/weather/logs`, {
+        params: { location }
+    });
+    return data;
+}
+
+export async function getInsights(location = DEFAULT_LOCATION) {
+    const { data } = await api.get(`/weather/insights`, {
+        params: { location }
+    });
+    return data;
 }
