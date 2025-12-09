@@ -55,4 +55,3 @@ RabbitMQ
 Go Worker
 
 Python Collector
-https://drive.google.com/file/d/150q8rpFM1riXoecbEz05lldolxdxJtCF/view?usp=drivesdk
